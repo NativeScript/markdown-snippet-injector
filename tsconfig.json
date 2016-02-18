@@ -5,8 +5,7 @@
         "module": "commonjs",
         "moduleResolution": "node",
         "noImplicitAny": false,
-        "removeComments": true,
-        "noEmitOnError": false
+        "removeComments": true
     },
     "filesGlob": [
         "**/*.ts",
