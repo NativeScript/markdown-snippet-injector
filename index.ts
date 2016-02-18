@@ -1,19 +1,18 @@
-import fsModule = require("fs");
-import yargsModule = require("yargs");
-import pathModule = require("path");
-import osModule = require('os');
+declare var require;
+var fsModule = require("fs");
+var yargsModule = require("yargs");
+var pathModule = require("path");
+var osModule = require('os');
 
 
 export class SnippetInjector {
-    private _storedSnippets: Map<string, string>;
-    private _storedPlaceholders: Map<string, string>;
+    private _storedSnippets;
     private _snippetTitle: string;
     private _sourceFileExtensionFilter: string;
     private _targetFileExtensionFilter: string;
 
     constructor() {
-        this._storedSnippets = new Map<string, string>();
-        this._storedPlaceholders = new Map<string, string>();
+        this._storedSnippets = {}
         this.snippetTitle = "";
     }
 
@@ -77,9 +76,9 @@ export class SnippetInjector {
         while (match) {
             var matchedString = match[0];
             var placeholderId = match[1];
-            if (this._storedSnippets.has(placeholderId)) {
+            if (this._storedSnippets[placeholderId] !== undefined) {
                 hadMatches = true;
-                var newString = this._storedSnippets.get(placeholderId);
+                var newString = this._storedSnippets[placeholderId];
                 newString = "```" + this.snippetTitle + osModule.EOL + newString + osModule.EOL + "```";
                 fileContents = fileContents.replace(matchedString, newString);
                 console.log("Token replaced: " + matchedString);
@@ -117,7 +116,7 @@ export class SnippetInjector {
             var matchIndex = match.index;
             var matchLength = match[0].length;
             var idOfSnippet = match[1];
-            if (this._storedSnippets.has(idOfSnippet)) {
+            if (this._storedSnippets[idOfSnippet] !== undefined) {
                 match = regExpOpen.exec(fileContents);
                 continue;
             }
@@ -126,7 +125,7 @@ export class SnippetInjector {
             var snippet = fileContents.substr(matchIndex + matchLength, indexOfClosingTag - matchIndex - matchLength);
             snippet = snippet.replace(regExpReplacer, "");
             console.log("Snippet resolved: " + snippet);
-            this._storedSnippets.set(idOfSnippet, snippet);
+            this._storedSnippets[idOfSnippet] = snippet;
             match = regExpOpen.exec(fileContents);
         }
     }
@@ -149,11 +148,11 @@ export class SnippetInjector {
 var rootDirectory = yargsModule.argv.root;
 var docsRoot = yargsModule.argv.docsroot;
 
-if (rootDirectory === undefined){
+if (rootDirectory === undefined) {
     throw new Error("Root of snippet sources not defined. Please specify sources root by using the --root parameter.");
 }
 
-if (docsRoot === undefined){
+if (docsRoot === undefined) {
     throw new Error("Root of documentation sources not defined. Please specify documentation root by using the --docsroot parameter.");
 }
 
