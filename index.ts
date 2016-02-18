@@ -13,7 +13,7 @@ export class SnippetInjector {
 
     constructor() {
         this._storedSnippets = {}
-        this.snippetTitle = "";
+        this._snippetTitle = "";
     }
 
     get targetFileExtensionFilter(): string {
@@ -53,7 +53,7 @@ export class SnippetInjector {
             this.processFile(root);
         }
 
-        if (this._storedSnippets.size > 0) {
+        if (Object.keys(this._storedSnippets).length > 0) {
             this.injectSnippetsIntoDocs(docsRoot);
         }
     }
