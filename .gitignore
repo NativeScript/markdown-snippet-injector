@@ -3,6 +3,7 @@
 
 #Node
 node_modules/
+*.d.ts
 
 #OSX
 .DS_Store
