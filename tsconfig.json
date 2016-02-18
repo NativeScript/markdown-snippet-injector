@@ -5,8 +5,7 @@
         "module": "commonjs",
         "moduleResolution": "node",
         "noImplicitAny": false,
-        "removeComments": true,
-        "outDir": "src"
+        "removeComments": true
     },
     "filesGlob": [
         "**/*.ts",
@@ -15,8 +14,7 @@
     "compileOnSave": true,
     "buildOnSave": false,
     "files": [
-        "src/injector.d.ts",
-        "src/injector.ts"
+        "index.ts"
     ],
     "atom": {
         "rewriteTsconfig": true
