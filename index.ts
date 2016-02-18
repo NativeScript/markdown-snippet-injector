@@ -1,3 +1,4 @@
+#! /usr/bin/env node
 declare var require;
 var fsModule = require("fs");
 var yargsModule = require("yargs");
