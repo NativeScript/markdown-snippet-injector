@@ -7,11 +7,7 @@
         "mdinject": "index.js"
     },
     "files": [
-<<<<<<< HEAD
         "index.js",
-=======
-        "injector.ts",
->>>>>>> master
         "tsconfig.json"
     ],
     "scripts": {
