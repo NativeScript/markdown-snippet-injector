@@ -1,4 +1,4 @@
-#! /usr/bin/env node
+#! /usr/bin / env node
 declare var require;
 var fsModule = require("fs");
 var yargsModule = require("yargs");
@@ -11,11 +11,11 @@ export class SnippetInjector {
     private _snippetTitle: string;
     private _sourceFileExtensionFilter: string;
     private _targetFileExtensionFilter: string;
+    private _storedSourceTypes: Array<string>;
 
 
     constructor() {
-        this._storedSnippets = {}
-        this._snippetTitle = "TypeScript";
+        this._storedSnippets = {};
     }
 
     get targetFileExtensionFilter(): string {
@@ -42,6 +42,11 @@ export class SnippetInjector {
         this._snippetTitle = value;
     }
 
+    private prepareSourceTypes() {
+        this._storedSourceTypes = this._sourceFileExtensionFilter.split('|');
+        console.log("Stored source types: " + JSON.stringify(this._storedSourceTypes));
+    }
+
     /**
     * Loads the code snippets from the source-tree at the specified location.
     * @param root The root of the source-tree to load the snippets from.
@@ -49,10 +54,13 @@ export class SnippetInjector {
     public process(root: string, docsRoot: string) {
         var lStat = fsModule.lstatSync(root);
 
-        if (lStat.isDirectory()) {
-            this.processDirectory(root);
-        } else if (lStat.isFile()) {
-            this.processFile(root);
+        this.prepareSourceTypes();
+        for (var i = 0; i < this._storedSourceTypes.length; i++ ) {
+            if (lStat.isDirectory()) {
+                this.processDirectory(root, this._storedSourceTypes[i]);
+            } else if (lStat.isFile()) {
+                this.processFile(root, this._storedSourceTypes[i]);
+            }
         }
 
         if (Object.keys(this._storedSnippets).length > 0) {
@@ -63,13 +71,13 @@ export class SnippetInjector {
     private injectSnippetsIntoDocs(root: string) {
         var lStat = fsModule.lstatSync(root);
         if (lStat.isDirectory()) {
-            this.processDocsDirectory(root);
+            this.processDocsDirectory(root, this._targetFileExtensionFilter);
         } else if (lStat.isFile()) {
-            this.processDocsFile(root);
+            this.processDocsFile(root, this._targetFileExtensionFilter);
         }
     }
 
-    private processDocsFile(path: string) {
+    private processDocsFile(path: string, extensionFilter: string) {
         console.log("Processing docs file: " + path);
         var fileContents = fsModule.readFileSync(path, 'utf8');
         var regExpOpen = /\<snippet id=\'((?:[a-z]+\-)+[a-z]+)\'\/\>/g;
@@ -78,13 +86,26 @@ export class SnippetInjector {
         while (match) {
             var matchedString = match[0];
             var placeholderId = match[1];
-            if (this._storedSnippets[placeholderId] !== undefined) {
-                hadMatches = true;
-                var newString = this._storedSnippets[placeholderId];
-                newString = "```" + this.snippetTitle + osModule.EOL + newString + osModule.EOL + "```";
-                fileContents = fileContents.replace(matchedString, newString);
+            var finalSnippet = "";
+            var snippetTitles = this.snippetTitle.split('|');
+            for (var i = 0; i < this._storedSourceTypes.length; i++) {
+                var currentSourceType = this._storedSourceTypes[i];
+                var snippetForSourceType = this._storedSnippets[currentSourceType + placeholderId]
+                if (snippetForSourceType !== undefined) {
+                    hadMatches = true;
+                    if (finalSnippet.length > 0){
+                        finalSnippet += osModule.EOL;
+                    }
+                    var snippetTitle = snippetTitles.length > i ? snippetTitles[i] : "";
+                    finalSnippet += "```" + + osModule.EOL + snippetForSourceType + osModule.EOL + "```";
+                }
+            }
+
+            if (finalSnippet.length > 0) {
+                fileContents = fileContents.replace(matchedString, finalSnippet);
                 console.log("Token replaced: " + matchedString);
             }
+
             match = regExpOpen.exec(fileContents);
         }
 
@@ -93,21 +114,21 @@ export class SnippetInjector {
         }
     }
 
-    private processDocsDirectory(path: string) {
+    private processDocsDirectory(path: string, extensionFilter: string) {
         var files = fsModule.readdirSync(path);
         for (var i = 0; i < files.length; i++) {
             var currentFile = files[i];
             var fullPath = path + '/' + currentFile;
             var fileStat = fsModule.lstatSync(fullPath);
             if (fileStat.isDirectory()) {
-                this.processDocsDirectory(fullPath);
-            } else if (fileStat.isFile() && pathModule.extname(fullPath) === ".md") {
-                this.processDocsFile(fullPath);
+                this.processDocsDirectory(fullPath, extensionFilter);
+            } else if (fileStat.isFile() && pathModule.extname(fullPath) === extensionFilter) {
+                this.processDocsFile(fullPath, extensionFilter);
             }
         }
     }
 
-    private processFile(path: string) {
+    private processFile(path: string, extensionFilter: string) {
         console.log("Processing source file: " + path);
         var extname = pathModule.extname(path);
         var fileContents = fsModule.readFileSync(path, 'utf8');
@@ -119,7 +140,7 @@ export class SnippetInjector {
             var matchIndex = match.index;
             var matchLength = match[0].length;
             var idOfSnippet = match[1];
-            if (this._storedSnippets[idOfSnippet] !== undefined) {
+            if (this._storedSnippets[extensionFilter + idOfSnippet] !== undefined) {
                 match = regExpOpen.exec(fileContents);
                 continue;
             }
@@ -129,21 +150,21 @@ export class SnippetInjector {
             snippet = snippet.replace(regExpOpenReplacer, "");
             snippet = snippet.replace(regExpCloseReplacer, "");
             console.log("Snippet resolved: " + snippet);
-            this._storedSnippets[idOfSnippet] = snippet;
+            this._storedSnippets[extensionFilter + idOfSnippet] = snippet;
             match = regExpOpen.exec(fileContents);
         }
     }
 
-    private processDirectory(path: string) {
+    private processDirectory(path: string, extensionFilter: string) {
         var files = fsModule.readdirSync(path);
         for (var i = 0; i < files.length; i++) {
             var currentFile = files[i];
             var fullPath = path + '/' + currentFile;
             var fileStat = fsModule.lstatSync(fullPath);
             if (fileStat.isDirectory()) {
-                this.processDirectory(path + '/' + currentFile);
-            } else if (fileStat.isFile() && pathModule.extname(fullPath) === this.sourceFileExtensionFilter) {
-                this.processFile(fullPath);
+                this.processDirectory(path + '/' + currentFile, extensionFilter);
+            } else if (fileStat.isFile() && pathModule.extname(fullPath) === extensionFilter) {
+                this.processFile(fullPath, extensionFilter);
             }
         }
     }
@@ -164,6 +185,6 @@ var snippetInjector = new SnippetInjector();
 snippetInjector.sourceFileExtensionFilter = yargsModule.argv.sourceext || ".ts";
 snippetInjector.targetFileExtensionFilter = yargsModule.argv.targetext || ".md";
 
-snippetInjector.snippetTitle = yargsModule.argv.snippettitle;
+snippetInjector.snippetTitle = yargsModule.argv.snippettitle || "TypeScript";
 
 snippetInjector.process(rootDirectory, docsRoot);
