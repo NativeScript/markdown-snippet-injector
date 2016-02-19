@@ -99,5 +99,16 @@ This will produce two code snippets: one containing the whole view-model class a
 ## Defining file extension filters
 You can choose what kind of files will be processed during snippet injection by using the `--sourceext` and `--targetext` parameters. The default values of these properties are `.ts` and `.md` respectively.
 
+### Multiple source and target extension types
+You can define multiple source or target extension types by setting the corresponding parameters to a set of extensions separated by a `|`:
+```
+mdinject --root=. --docsroot=../ --sourceext=".ts|.js" --targetext=".md|.txt"
+```
+In this way all target files will be processed and the corresponding snippet placeholders will be replaced.
+
 ## Defining a title for the injected snippet
-When injected, a snippet is formatted using the default MarkDown code-snippet format. You can append a title to the injected snippet by using the `--snippettitle` parameter. By default, its value is set to be `TypeScript`.
+When injected, a snippet is formatted using the default MarkDown code-snippet format. You can append a title to the injected snippet by using the `--snippettitles` parameter. By default, `.js` and `.ts` files are recognized and the snippets coming from them are titled `JavaScript` or `TypeScript`. You can define custom snippet titles by setting the `--snippettitles` parameter to a set of titles separated by a `|`:
+```
+mdinject --root=. --docsroot=../ --sourceext=".java|.cs" --targetext=".md|.txt" --snippettitles="Java|C#"
+```
+> Note that the order of the snippet titles must be the related to the order of the source extension types so that they match.

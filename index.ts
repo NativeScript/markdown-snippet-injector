@@ -12,6 +12,7 @@ export class SnippetInjector {
     private _sourceFileExtensionFilter: string;
     private _targetFileExtensionFilter: string;
     private _storedSourceTypes: Array<string>;
+    private _storedTargetTypes: Array<string>;
     private _storedSourceTitles: any;
 
 
@@ -43,8 +44,9 @@ export class SnippetInjector {
         this._snippetTitles = value;
     }
 
-    private prepareSourceTypes() {
+    private init() {
         this._storedSourceTypes = this._sourceFileExtensionFilter.split('|');
+        this._storedTargetTypes = this._targetFileExtensionFilter.split('|');
         if (this.snippetTitles === undefined) {
             this._storedSourceTitles = { '.js': 'JavaScript', '.ts': 'TypeScript' };
         } else {
@@ -63,7 +65,8 @@ export class SnippetInjector {
     public process(root: string, docsRoot: string) {
         var lStat = fsModule.lstatSync(root);
 
-        this.prepareSourceTypes();
+        this.init();
+
         for (var i = 0; i < this._storedSourceTypes.length; i++ ) {
             if (lStat.isDirectory()) {
                 this.processDirectory(root, this._storedSourceTypes[i]);
@@ -73,16 +76,14 @@ export class SnippetInjector {
         }
 
         if (Object.keys(this._storedSnippets).length > 0) {
-            this.injectSnippetsIntoDocs(docsRoot);
-        }
-    }
-
-    private injectSnippetsIntoDocs(root: string) {
-        var lStat = fsModule.lstatSync(root);
-        if (lStat.isDirectory()) {
-            this.processDocsDirectory(root, this._targetFileExtensionFilter);
-        } else if (lStat.isFile()) {
-            this.processDocsFile(root, this._targetFileExtensionFilter);
+            var lStat = fsModule.lstatSync(docsRoot);
+            for (var i = 0; i < this._storedTargetTypes.length; i++ ) {
+                if (lStat.isDirectory()) {
+                    this.processDocsDirectory(docsRoot, this._storedTargetTypes[i]);
+                } else if (lStat.isFile()) {
+                    this.processDocsFile(docsRoot, this._storedTargetTypes[i]);
+                }
+            }
         }
     }
 
@@ -96,7 +97,7 @@ export class SnippetInjector {
             var matchedString = match[0];
             var placeholderId = match[1];
             var finalSnippet = "";
-
+            console.log("Placeholder resolved: " + matchedString);
             for (var i = 0; i < this._storedSourceTypes.length; i++) {
                 var currentSourceType = this._storedSourceTypes[i];
                 var snippetForSourceType = this._storedSnippets[currentSourceType + placeholderId]
@@ -138,7 +139,7 @@ export class SnippetInjector {
     }
 
     private processFile(path: string, extensionFilter: string) {
-        console.log("Processing source file: " + path);
+        //console.log("Processing source file: " + path);
         var extname = pathModule.extname(path);
         var fileContents = fsModule.readFileSync(path, 'utf8');
         var regExpOpen = /\/\/\s*>>\s*(([a-z]+\-)+[a-z]+)\s*/g;
