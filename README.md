@@ -1,9 +1,11 @@
 # Welcome to `markdown-snippet-injector`
-A tool for injecting code snippets into MarkDown files.
+A tool for injecting code snippets into MarkDown files:
 
-- Define snippets in your source by using a simple notation
-- Put placeholders associated with the snippets in your MarkDown files
-- Run MarkDown injector to replace the placeholders during your documentation build
+1. Define snippets in your source by using a simple notation
+2. Put placeholders associated with the snippets in your MarkDown files
+3. Run MarkDown injector to replace the placeholders during your documentation build:
+
+`mdinject --root=<path-to-source-code> --docsroot=<path-to-docs>`
 
 # Using `markdown-snippet-injector`
 Defining code snippets in your source files is done by enclosing them as shown below:
@@ -94,4 +96,8 @@ export class DataItem {
 ```
 This will produce two code snippets: one containing the whole view-model class and the other containing the `onShouldRefreshOnPull` function.
 
-## Defining
+## Defining file extension filters
+You can choose what kind of files will be processed during snippet injection by using the `--sourceext` and `--targetext` parameters. The default values of these properties are `.ts` and `.md` respectively.
+
+## Defining a title for the injected snippet
+When injected, a snippet is formatted using the default MarkDown code-snippet format. You can append a title to the injected snippet by using the `--snippettitle` parameter. By default, its value is set to be `TypeScript`.
