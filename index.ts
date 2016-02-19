@@ -8,10 +8,11 @@ var osModule = require('os');
 
 export class SnippetInjector {
     private _storedSnippets;
-    private _snippetTitle: string;
+    private _snippetTitles: string;
     private _sourceFileExtensionFilter: string;
     private _targetFileExtensionFilter: string;
     private _storedSourceTypes: Array<string>;
+    private _storedSourceTitles: any;
 
 
     constructor() {
@@ -34,17 +35,25 @@ export class SnippetInjector {
         this._sourceFileExtensionFilter = value;
     }
 
-    get snippetTitle(): string {
-        return this._snippetTitle;
+    get snippetTitles(): string {
+        return this._snippetTitles;
     }
 
-    set snippetTitle(value: string) {
-        this._snippetTitle = value;
+    set snippetTitles(value: string) {
+        this._snippetTitles = value;
     }
 
     private prepareSourceTypes() {
         this._storedSourceTypes = this._sourceFileExtensionFilter.split('|');
-        console.log("Stored source types: " + JSON.stringify(this._storedSourceTypes));
+        if (this.snippetTitles === undefined) {
+            this._storedSourceTitles = { '.js': 'JavaScript', '.ts': 'TypeScript' };
+        } else {
+            this._storedSourceTitles = {};
+            var currentTitles = this.snippetTitles.split('|');
+            for (var i = 0; i < this._storedSourceTypes.length; i++) {
+                this._storedSourceTitles[this._storedSourceTypes[i]] = (currentTitles[i] || "")
+            }
+        }
     }
 
     /**
@@ -80,24 +89,24 @@ export class SnippetInjector {
     private processDocsFile(path: string, extensionFilter: string) {
         console.log("Processing docs file: " + path);
         var fileContents = fsModule.readFileSync(path, 'utf8');
-        var regExpOpen = /\<snippet id=\'((?:[a-z]+\-)+[a-z]+)\'\/\>/g;
+        var regExpOpen = /\<\s*snippet\s+id=\'((?:[a-z]+\-)+[a-z]+)\'\s*\/\s*\>/g;
         var match = regExpOpen.exec(fileContents);
         var hadMatches: boolean = false;
         while (match) {
             var matchedString = match[0];
             var placeholderId = match[1];
             var finalSnippet = "";
-            var snippetTitles = this.snippetTitle.split('|');
+
             for (var i = 0; i < this._storedSourceTypes.length; i++) {
                 var currentSourceType = this._storedSourceTypes[i];
                 var snippetForSourceType = this._storedSnippets[currentSourceType + placeholderId]
                 if (snippetForSourceType !== undefined) {
                     hadMatches = true;
-                    if (finalSnippet.length > 0){
+                    if (finalSnippet.length > 0) {
                         finalSnippet += osModule.EOL;
                     }
-                    var snippetTitle = snippetTitles.length > i ? snippetTitles[i] : "";
-                    finalSnippet += "```" + + osModule.EOL + snippetForSourceType + osModule.EOL + "```";
+                    var currentSnippetTitle = this._storedSourceTitles[currentSourceType] || "";
+                    finalSnippet += "```" + currentSnippetTitle + osModule.EOL + snippetForSourceType + osModule.EOL + "```";
                 }
             }
 
@@ -185,6 +194,6 @@ var snippetInjector = new SnippetInjector();
 snippetInjector.sourceFileExtensionFilter = yargsModule.argv.sourceext || ".ts";
 snippetInjector.targetFileExtensionFilter = yargsModule.argv.targetext || ".md";
 
-snippetInjector.snippetTitle = yargsModule.argv.snippettitle || "TypeScript";
+snippetInjector.snippetTitles = yargsModule.argv.snippettitles;
 
 snippetInjector.process(rootDirectory, docsRoot);
