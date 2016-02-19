@@ -6,6 +6,13 @@
     "bin": {
         "mdinject": "index.js"
     },
+    "files":[
+        "index.ts",
+        "index.d.ts"
+    ],
+    "typescript":{
+        "definition": "index.d.ts"
+    },
     "scripts": {
         "preinstall": "tsc -p ."
     },
