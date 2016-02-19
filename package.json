@@ -15,7 +15,7 @@
         "definition": "index.d.ts"
     },
     "scripts": {
-        "prepublish": "tsc -p ."
+        "postinstall": "tsc -p ."
     },
     "keywords": [
         "markdown",
