@@ -6,10 +6,6 @@
     "bin": {
         "mdinject": "index.js"
     },
-    "files": [
-        "index.js",
-        "tsconfig.json"
-    ],
     "scripts": {
         "preinstall": "tsc -p ."
     },

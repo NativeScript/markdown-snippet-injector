@@ -12,9 +12,10 @@ export class SnippetInjector {
     private _sourceFileExtensionFilter: string;
     private _targetFileExtensionFilter: string;
 
+
     constructor() {
         this._storedSnippets = {}
-        this._snippetTitle = "";
+        this._snippetTitle = "TypeScript";
     }
 
     get targetFileExtensionFilter(): string {
@@ -110,8 +111,9 @@ export class SnippetInjector {
         console.log("Processing source file: " + path);
         var extname = pathModule.extname(path);
         var fileContents = fsModule.readFileSync(path, 'utf8');
-        var regExpOpen = /\/\/\<snippet id=\'(([a-z]+\-)+[a-z]+)\'\/\>/g;
-        var regExpReplacer = /\/\/\<snippet id=\'(?:([a-z]+\-)+[a-z]+)\'\/\>/g;
+        var regExpOpen = /\/\/\s*>>\s*(([a-z]+\-)+[a-z]+)\s*/g;
+        var regExpOpenReplacer = /\/\/\s*>>\s*(?:([a-z]+\-)+[a-z]+)\s+/g;
+        var regExpCloseReplacer = /\/\/\s*<<\s*(?:([a-z]+\-)+[a-z]+)\s+/g;
         var match = regExpOpen.exec(fileContents);
         while (match) {
             var matchIndex = match.index;
@@ -121,10 +123,11 @@ export class SnippetInjector {
                 match = regExpOpen.exec(fileContents);
                 continue;
             }
-            var closingTag = '\/\/<snippet id=\'' + match[1] + '\'\/>';
-            var indexOfClosingTag = fileContents.indexOf(closingTag, matchIndex + match[0].length);
+            var regExpCurrentClosing = new RegExp("//\\s*<<\\s*" + match[1] + "\\s+");
+            var indexOfClosingTag = regExpCurrentClosing.exec(fileContents).index;
             var snippet = fileContents.substr(matchIndex + matchLength, indexOfClosingTag - matchIndex - matchLength);
-            snippet = snippet.replace(regExpReplacer, "");
+            snippet = snippet.replace(regExpOpenReplacer, "");
+            snippet = snippet.replace(regExpCloseReplacer, "");
             console.log("Snippet resolved: " + snippet);
             this._storedSnippets[idOfSnippet] = snippet;
             match = regExpOpen.exec(fileContents);
