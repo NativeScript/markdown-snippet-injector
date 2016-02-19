@@ -15,7 +15,7 @@
         "definition": "index.d.ts"
     },
     "scripts": {
-        "preinstall": "tsc -p ."
+        "postinstall": "tsc -p ."
     },
     "keywords": [
         "markdown",
@@ -26,7 +26,8 @@
     "author": "Deyan Ginev",
     "license": "MIT",
     "dependencies": {
-        "yargs": "^4.1.0"
+        "yargs": "^4.1.0",
+
     },
     "devDependencies": {
         "typescript": "^1.7.5"
