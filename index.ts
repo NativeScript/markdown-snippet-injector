@@ -14,6 +14,7 @@ export class SnippetInjector {
     private _storedSourceTypes: Array<string>;
     private _storedTargetTypes: Array<string>;
     private _storedSourceTitles: any;
+    private _fileProcessors = {};
 
 
     constructor() {
@@ -47,6 +48,7 @@ export class SnippetInjector {
     private init() {
         this._storedSourceTypes = this._sourceFileExtensionFilter.split('|');
         this._storedTargetTypes = this._targetFileExtensionFilter.split('|');
+
         if (this.snippetTitles === undefined) {
             this._storedSourceTitles = { '.js': 'JavaScript', '.ts': 'TypeScript' };
         } else {
@@ -56,6 +58,10 @@ export class SnippetInjector {
                 this._storedSourceTitles[this._storedSourceTypes[i]] = (currentTitles[i] || "")
             }
         }
+
+        this._fileProcessors['.js'] = this.processTSFileCore;
+        this._fileProcessors['.ts'] = this.processTSFileCore;
+        this._fileProcessors['.xml'] = this.processXMLFileCore;
     }
 
     /**
@@ -83,6 +89,20 @@ export class SnippetInjector {
                 } else if (lStat.isFile()) {
                     this.processDocsFile(docsRoot, this._storedTargetTypes[i]);
                 }
+            }
+        }
+    }
+
+    private processDirectory(path: string, extensionFilter: string) {
+        var files = fsModule.readdirSync(path);
+        for (var i = 0; i < files.length; i++) {
+            var currentFile = files[i];
+            var fullPath = path + '/' + currentFile;
+            var fileStat = fsModule.lstatSync(fullPath);
+            if (fileStat.isDirectory()) {
+                this.processDirectory(path + '/' + currentFile, extensionFilter);
+            } else if (fileStat.isFile() && pathModule.extname(fullPath) === extensionFilter) {
+                this.processFile(fullPath, extensionFilter);
             }
         }
     }
@@ -139,7 +159,12 @@ export class SnippetInjector {
     }
 
     private processFile(path: string, extensionFilter: string) {
-        //console.log("Processing source file: " + path);
+        var processor = this._fileProcessors[extensionFilter];
+        processor.call(this, path, extensionFilter);
+    }
+
+    private processTSFileCore(path: string, extensionFilter: string) {
+        console.log("Processing source file: " + path);
         var extname = pathModule.extname(path);
         var fileContents = fsModule.readFileSync(path, 'utf8');
         var regExpOpen = /\/\/\s*>>\s*(([a-z]+\-)+[a-z]+)\s*/g;
@@ -165,20 +190,60 @@ export class SnippetInjector {
         }
     }
 
-    private processDirectory(path: string, extensionFilter: string) {
-        var files = fsModule.readdirSync(path);
-        for (var i = 0; i < files.length; i++) {
-            var currentFile = files[i];
-            var fullPath = path + '/' + currentFile;
-            var fileStat = fsModule.lstatSync(fullPath);
-            if (fileStat.isDirectory()) {
-                this.processDirectory(path + '/' + currentFile, extensionFilter);
-            } else if (fileStat.isFile() && pathModule.extname(fullPath) === extensionFilter) {
-                this.processFile(fullPath, extensionFilter);
+    private processXMLFileCore(path: string, extensionFilter: string) {
+        console.log("Processing source file: " + path);
+        var extname = pathModule.extname(path);
+        var fileContents = fsModule.readFileSync(path, 'utf8');
+        var regExpOpen = /<!--\s*>>\s*(([a-z]+\-)+[a-z]+)\s*-->/g;
+        var regExpOpenReplacer = /<!--\s*>>\s*(?:([a-z]+\-)+[a-z]+)\s+-->/g;
+        var regExpCloseReplacer = /<!--\s*<<\s*(?:([a-z]+\-)+[a-z]+)\s+-->/g;
+        var match = regExpOpen.exec(fileContents);
+        while (match) {
+            var matchIndex = match.index;
+            var matchLength = match[0].length;
+            var idOfSnippet = match[1];
+            if (this._storedSnippets[extensionFilter + idOfSnippet] !== undefined) {
+                match = regExpOpen.exec(fileContents);
+                continue;
             }
+            var regExpCurrentClosing = new RegExp("<!--\\s*<<\\s*" + match[1] + "\\s+-->");
+            var indexOfClosingTag = regExpCurrentClosing.exec(fileContents).index;
+            var snippet = fileContents.substr(matchIndex + matchLength, indexOfClosingTag - matchIndex - matchLength);
+            snippet = snippet.replace(regExpOpenReplacer, "");
+            snippet = snippet.replace(regExpCloseReplacer, "");
+            snippet = this.escapeBindings(snippet);
+            console.log("Snippet resolved: " + snippet);
+            this._storedSnippets[extensionFilter + idOfSnippet] = snippet;
+            match = regExpOpen.exec(fileContents);
         }
     }
+
+    private escapeBindings(snippet: string) {
+        var bindingRegEx = new RegExp("\{\{.*\}\}");
+        var newLineChar = '\n';
+        var linesOfSnippet = snippet.split(newLineChar);
+        var newSnippet = linesOfSnippet.length > 0 ? "" : snippet;
+
+        for (var i = 0; i < linesOfSnippet.length; i++) {
+            var currentLine = linesOfSnippet[i];
+            var match = bindingRegEx.exec(currentLine);
+
+            if (match) {
+                currentLine = "\{\% raw \%\}" + currentLine + "\{\% endraw \%\}";
+            }
+
+            newSnippet += currentLine;
+
+            if (i < linesOfSnippet.length - 1) {
+                newSnippet += newLineChar;
+            }
+        }
+
+        return newSnippet;
+    }
 }
+
+
 
 var rootDirectory = yargsModule.argv.root;
 var docsRoot = yargsModule.argv.docsroot;
