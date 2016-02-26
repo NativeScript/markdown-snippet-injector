@@ -8,6 +8,9 @@ A tool for injecting code snippets into MarkDown files:
 `mdinject --root=<path-to-source-code> --docsroot=<path-to-docs>`
 
 # Using `markdown-snippet-injector`
+
+## Defining snippets in `JavaScript` and `TypeScript` source files
+
 Defining code snippets in your source files is done by enclosing them as shown below:
 
 ```
@@ -30,7 +33,29 @@ export function divide(a, b){
 // << division-snippet
 ```
 
-Then use the `<snippet id='<your-snippet-id'/>` notation to define the corresponding placeholders in your markdown files. They will be replaced by the snippet injector when run:
+## Defining source snippets in `XML` files
+If you want to define a code-snippet in a `XML` file you should use the following approach:
+
+```XML
+<!-- >> listview-first-look -->
+<navigation:ExamplePage xmlns:navigation="navigation/example-page" loaded="onPageLoaded" xmlns:lv="nativescript-telerik-ui/listview" xmlns="http://www.nativescript.org/tns.xsd">
+    <lv:RadListView items="{{ dataItems }}" >
+        <lv:RadListView.listViewLayout>
+            <lv:ListViewLinearLayout scrollDirection="Vertical"/>
+        </lv:RadListView.listViewLayout>
+        <lv:RadListView.itemTemplate>
+            <StackLayout orientation="vertical">
+                <Label fontSize="20" text="{{ itemName }}"/>
+                <Label fontSize="14" text="{{ itemDescription }}"/>
+            </StackLayout>
+        </lv:RadListView.itemTemplate>
+    </lv:RadListView>
+</navigation:ExamplePage>
+<!-- << listview-first-look -->
+```
+
+## Defining placeholders for the snippets in your `MarkDown` files
+Use the `<snippet id='<your-snippet-id>'/>` notation to define the corresponding placeholders in your markdown files. They will be replaced by the snippet injector when run:
 
 ```MarkDown
     # Using the multiply function:
