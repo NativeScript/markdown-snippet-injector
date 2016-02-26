@@ -180,7 +180,11 @@ export class SnippetInjector {
                 continue;
             }
             var regExpCurrentClosing = new RegExp("//\\s*<<\\s*" + match[1] + "\\s+");
-            var indexOfClosingTag = regExpCurrentClosing.exec(fileContents).index;
+            var closingTagMatch = regExpCurrentClosing.exec(fileContents);
+            if (!closingTagMatch){
+                throw new Error("Closing tag not found for: " + idOfSnippet);
+            }
+            var indexOfClosingTag = closingTagMatch.index;
             var snippet = fileContents.substr(matchIndex + matchLength, indexOfClosingTag - matchIndex - matchLength);
             snippet = snippet.replace(regExpOpenReplacer, "");
             snippet = snippet.replace(regExpCloseReplacer, "");
