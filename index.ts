@@ -62,6 +62,8 @@ export class SnippetInjector {
         this._fileProcessors['.js'] = this.processTSFileCore;
         this._fileProcessors['.ts'] = this.processTSFileCore;
         this._fileProcessors['.xml'] = this.processXMLFileCore;
+        this._fileProcessors['.java'] = this.processTSFileCore;
+        this._fileProcessors['.cs'] = this.processTSFileCore;
     }
 
     /**
