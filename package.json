@@ -1,6 +1,6 @@
 {
     "name": "markdown-snippet-injector",
-    "version": "0.0.1",
+    "version": "0.0.3",
     "description": "The MarkDown snippet injector generates MD code snippets by extracting them from the source code of your projects.",
     "main": "index.js",
     "bin": {
@@ -15,7 +15,7 @@
         "definition": "index.d.ts"
     },
     "scripts": {
-        "postinstall": "tsc -p ."
+        "prepublish": "tsc -p ."
     },
     "keywords": [
         "markdown",
