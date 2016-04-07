@@ -133,6 +133,20 @@ export class DataItem {
 ```
 This will produce two code snippets: one containing the whole view-model class and the other containing the `onShouldRefreshOnPull` function.
 
+## Hiding Blocks
+You can mark parts of the original code to be hidden - not shown in the documentation:
+``` TS
+// >> ts-snippet-with-hidden-section
+export function div(a, b){
+    // >> (hide)
+    console.log("You should not see this!")
+    // << (hide)    
+    return a / b;
+}
+// << ts-snippet-with-hidden-section
+```
+The syntax is similar in `XML` and `CSS`.
+
 ## Defining file extension filters
 You can choose what kind of files will be processed during snippet injection by using the `--sourceext` and `--targetext` parameters. The default values of these properties are `.ts` and `.md` respectively.
 
