@@ -1,32 +1,35 @@
 {
-    "name": "markdown-snippet-injector",
-    "version": "0.0.3",
-    "description": "The MarkDown snippet injector generates MD code snippets by extracting them from the source code of your projects.",
-    "main": "index.js",
-    "bin": {
-        "mdinject": "index.js"
-    },
-    "files":[
-        "index.ts",
-        "index.d.ts",
-        "tsconfig.json"
-    ],
-    "typescript":{
-        "definition": "index.d.ts"
-    },
-    "scripts": {
-        "prepublish": "tsc -p ."
-    },
-    "keywords": [
-        "markdown",
-        "MD",
-        "snippet",
-        "injector"
-    ],
-    "author": "Deyan Ginev",
-    "license": "MIT",
-    "dependencies": {
-        "yargs": "^4.1.0",
-        "typescript": "^1.7.5"
-    }
+  "name": "markdown-snippet-injector",
+  "version": "0.0.3",
+  "description": "The MarkDown snippet injector generates MD code snippets by extracting them from the source code of your projects.",
+  "main": "index.js",
+  "bin": {
+    "mdinject": "index.js"
+  },
+  "files": [
+    "index.ts",
+    "index.d.ts",
+    "tsconfig.json"
+  ],
+  "typescript": {
+    "definition": "index.d.ts"
+  },
+  "scripts": {
+    "prepublish": "tsc -p ."
+  },
+  "keywords": [
+    "markdown",
+    "MD",
+    "snippet",
+    "injector"
+  ],
+  "author": "Deyan Ginev",
+  "license": "MIT",
+  "dependencies": {
+    "yargs": "^4.1.0",
+    "typescript": "^1.7.5"
+  },
+  "devDependencies": {
+    "shelljs": "^0.6.0"
+  }
 }

@@ -1,5 +1,7 @@
 #JavaScript
 *.js
+!tests/*.js
+*.js.map
 
 #Node
 node_modules/
@@ -7,3 +9,5 @@ node_modules/
 
 #OSX
 .DS_Store
+
+tests/docsroot-output/

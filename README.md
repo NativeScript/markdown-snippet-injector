@@ -54,6 +54,18 @@ If you want to define a code-snippet in a `XML` file you should use the followin
 <!-- << listview-first-look -->
 ```
 
+## Defining source snippets in `CSS` files
+Code snippets inside CSS files are defined as follows:
+
+``` CSS
+/* >> css-snippet */
+.btn {
+    color: green;
+    text-align: center;
+}
+/* << css-snippet */
+```
+
 ## Defining placeholders for the snippets in your `MarkDown` files
 Use the `<snippet id='<your-snippet-id>'/>` notation to define the corresponding placeholders in your markdown files. They will be replaced by the snippet injector when run:
 
