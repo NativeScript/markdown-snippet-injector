@@ -4,3 +4,12 @@
     text-align: center;
 }
 /* << css-snippet */
+
+/* >> css-snippet-with-hidden-section */
+.btn {
+    color: green;
+    /* >> (hide) */
+    visibility: hidden;
+    /* << (hide) */
+}
+/* << css-snippet-with-hidden-section */

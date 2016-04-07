@@ -5,7 +5,59 @@ var yargsModule = require("yargs");
 var pathModule = require("path");
 var osModule = require('os');
 
+const ws = "[\\t ]*";
+const wsAndLine = "[\\r]?[\\n]?";
 
+const expConsts = {
+    name: "((?:[a-z]+\\-)*[a-z]+)",
+    hide: "\\(hide\\)" + ws,
+    start: ">>" + ws,
+    end: "<<" + ws
+}
+
+interface FormatSpec {
+    commentStart: string;
+    commentEnd: string;
+    postProcess?: (string) => string;
+}
+
+const jsSpec: FormatSpec = {
+    commentStart: ws + "\\/\\/" + ws,
+    commentEnd: wsAndLine
+}
+
+const cssSpec: FormatSpec = {
+    commentStart: ws + "\\/\\*" + ws,
+    commentEnd: ws + "\\*\\/" + wsAndLine
+}
+
+const xmlSpec: FormatSpec = {
+    commentStart: ws + "<!--" + ws,
+    commentEnd: ws + "-->" + wsAndLine,
+    postProcess: function(snippet: string) {
+        var bindingRegEx = new RegExp("\{\{.*\}\}");
+        var newLineChar = '\n';
+        var linesOfSnippet = snippet.split(newLineChar);
+        var newSnippet = linesOfSnippet.length > 0 ? "" : snippet;
+
+        for (var i = 0; i < linesOfSnippet.length; i++) {
+            var currentLine = linesOfSnippet[i];
+            var match = bindingRegEx.exec(currentLine);
+
+            if (match) {
+                currentLine = "\{\% raw \%\}" + currentLine + "\{\% endraw \%\}";
+            }
+
+            newSnippet += currentLine;
+
+            if (i < linesOfSnippet.length - 1) {
+                newSnippet += newLineChar;
+            }
+        }
+
+        return newSnippet;
+    }
+}
 export class SnippetInjector {
     private _storedSnippets;
     private _snippetTitles: string;
@@ -14,7 +66,8 @@ export class SnippetInjector {
     private _storedSourceTypes: Array<string>;
     private _storedTargetTypes: Array<string>;
     private _storedSourceTitles: any;
-    private _fileProcessors = {};
+
+    private _fileFormatSpecs = {};
 
 
     constructor() {
@@ -59,12 +112,12 @@ export class SnippetInjector {
             }
         }
 
-        this._fileProcessors['.js'] = this.processTSFileCore;
-        this._fileProcessors['.ts'] = this.processTSFileCore;
-        this._fileProcessors['.xml'] = this.processXMLFileCore;
-        this._fileProcessors['.java'] = this.processTSFileCore;
-        this._fileProcessors['.cs'] = this.processTSFileCore;
-        this._fileProcessors['.css'] = this.processCSSFileCore;
+        this._fileFormatSpecs['.js'] = jsSpec;
+        this._fileFormatSpecs['.ts'] = jsSpec;
+        this._fileFormatSpecs['.java'] = jsSpec;
+        this._fileFormatSpecs['.cs'] = jsSpec;
+        this._fileFormatSpecs['.xml'] = xmlSpec;
+        this._fileFormatSpecs['.css'] = cssSpec;
     }
 
     /**
@@ -113,7 +166,7 @@ export class SnippetInjector {
     private processDocsFile(path: string, extensionFilter: string) {
         console.log("Processing docs file: " + path);
         var fileContents = fsModule.readFileSync(path, 'utf8');
-        var regExpOpen = /\<\s*snippet\s+id=\'((?:[a-z]+\-)+[a-z]+)\'\s*\/\s*\>/g;
+        var regExpOpen = /\<\s*snippet\s+id=\'((?:[a-z]+\-)*[a-z]+)\'\s*\/\s*\>/g;
         var match = regExpOpen.exec(fileContents);
         var hadMatches: boolean = false;
         while (match) {
@@ -162,16 +215,14 @@ export class SnippetInjector {
     }
 
     private processFile(path: string, extensionFilter: string) {
-        var processor = this._fileProcessors[extensionFilter];
-        processor.call(this, path, extensionFilter);
-    }
-
-    private processTSFileCore(path: string, extensionFilter: string) {
         console.log("Processing source file: " + path);
+
+        var spec: FormatSpec = this._fileFormatSpecs[extensionFilter];
+        var regExpOpen = new RegExp(spec.commentStart + expConsts.start + expConsts.name + spec.commentEnd, "g");
+        var regExpOpenReplacer = new RegExp(spec.commentStart + expConsts.start + expConsts.name + spec.commentEnd, "g");
+        var regExpCloseReplacer = new RegExp(spec.commentStart + expConsts.end + expConsts.name + spec.commentEnd, "g");
+
         var fileContents = fsModule.readFileSync(path, 'utf8');
-        var regExpOpen = /\/\/\s*>>\s*(([a-z]+\-)+[a-z]+)\s*/g;
-        var regExpOpenReplacer = /\/\/\s*>>\s*(?:([a-z]+\-)+[a-z]+)\s+/g;
-        var regExpCloseReplacer = /\/\/\s*<<\s*(?:([a-z]+\-)+[a-z]+)\s+/g;
         var match = regExpOpen.exec(fileContents);
         while (match) {
             var matchIndex = match.index;
@@ -181,106 +232,57 @@ export class SnippetInjector {
                 match = regExpOpen.exec(fileContents);
                 continue;
             }
-            var regExpCurrentClosing = new RegExp("//\\s*<<\\s*" + idOfSnippet);
+
+            var regExpCurrentClosing = new RegExp(spec.commentStart + expConsts.end + idOfSnippet + spec.commentEnd);
             var closingTagMatch = regExpCurrentClosing.exec(fileContents);
-            if (!closingTagMatch){
+            if (!closingTagMatch) {
                 throw new Error("Closing tag not found for: " + idOfSnippet);
             }
             var indexOfClosingTag = closingTagMatch.index;
+
             var snippet = fileContents.substr(matchIndex + matchLength, indexOfClosingTag - matchIndex - matchLength);
             snippet = snippet.replace(regExpOpenReplacer, "");
             snippet = snippet.replace(regExpCloseReplacer, "");
-            console.log("Snippet resolved: " + snippet);
-            this._storedSnippets[extensionFilter + idOfSnippet] = snippet;
-            match = regExpOpen.exec(fileContents);
-        }
-    }
-    
-    private processCSSFileCore(path: string, extensionFilter: string) {
-        console.log("Processing source file: " + path);
-        var fileContents = fsModule.readFileSync(path, 'utf8');
-        
-        var regExpOpen = /\/\*\s*>>\s*(([a-z]+\-)+[a-z]+)\s*\*\//g;
-        var regExpOpenReplacer = /\/\*\s*>>\s*(?:([a-z]+\-)+[a-z]+)\s+\*\//g;
-        var regExpCloseReplacer = /\/\*\s*<<\s*(?:([a-z]+\-)+[a-z]+)\s+\*\//g;
-        var match = regExpOpen.exec(fileContents);
-        while (match) {
-            var matchIndex = match.index;
-            var matchLength = match[0].length;
-            var idOfSnippet = match[1];
-            if (this._storedSnippets[extensionFilter + idOfSnippet] !== undefined) {
-                match = regExpOpen.exec(fileContents);
-                continue;
+            if (spec.postProcess) {
+                snippet = spec.postProcess(snippet);
             }
-            var regExpCurrentClosing = new RegExp("/\\*\\s*<<\\s*" + idOfSnippet +"\\s+\\*/");
-            var closingTagMatch = regExpCurrentClosing.exec(fileContents);
-            if (!closingTagMatch){
-                throw new Error("Closing tag not found for: " + idOfSnippet);
-            }
-            var indexOfClosingTag = closingTagMatch.index;
-            var snippet = fileContents.substr(matchIndex + matchLength, indexOfClosingTag - matchIndex - matchLength);
-            snippet = snippet.replace(regExpOpenReplacer, "");
-            snippet = snippet.replace(regExpCloseReplacer, "");
+
+            snippet = this.removeHiddenBlocks(snippet, spec);
+
             console.log("Snippet resolved: " + snippet);
             this._storedSnippets[extensionFilter + idOfSnippet] = snippet;
             match = regExpOpen.exec(fileContents);
         }
     }
 
-    private processXMLFileCore(path: string, extensionFilter: string) {
-        console.log("Processing source file: " + path);
-        var extname = pathModule.extname(path);
-        var fileContents = fsModule.readFileSync(path, 'utf8');
-        var regExpOpen = /<!--\s*>>\s*(([a-z]+\-)+[a-z]+)\s*-->/g;
-        var regExpOpenReplacer = /<!--\s*>>\s*(?:([a-z]+\-)+[a-z]+)\s+-->/g;
-        var regExpCloseReplacer = /<!--\s*<<\s*(?:([a-z]+\-)+[a-z]+)\s+-->/g;
-        var match = regExpOpen.exec(fileContents);
-        while (match) {
-            var matchIndex = match.index;
-            var matchLength = match[0].length;
-            var idOfSnippet = match[1];
-            if (this._storedSnippets[extensionFilter + idOfSnippet] !== undefined) {
-                match = regExpOpen.exec(fileContents);
-                continue;
-            }
-            var regExpCurrentClosing = new RegExp("<!--\\s*<<\\s*" + idOfSnippet + "\\s+-->");
-            var closingTagMatch = regExpCurrentClosing.exec(fileContents);
-            if (!closingTagMatch){
-                throw new Error("Closing tag not found for: " + idOfSnippet);
-            }
-            var indexOfClosingTag = closingTagMatch.index;
-            var snippet = fileContents.substr(matchIndex + matchLength, indexOfClosingTag - matchIndex - matchLength);
-            snippet = snippet.replace(regExpOpenReplacer, "");
-            snippet = snippet.replace(regExpCloseReplacer, "");
-            snippet = this.escapeBindings(snippet);
-            console.log("Snippet resolved: " + snippet);
-            this._storedSnippets[extensionFilter + idOfSnippet] = snippet;
-            match = regExpOpen.exec(fileContents);
-        }
-    }
+    private removeHiddenBlocks(snippet: string, spec: FormatSpec) {
+        const startExp = new RegExp(spec.commentStart + expConsts.start + expConsts.hide + spec.commentEnd, "g");
+        const endExp = new RegExp(spec.commentStart + expConsts.end + expConsts.hide + spec.commentEnd, "g");
 
-    private escapeBindings(snippet: string) {
-        var bindingRegEx = new RegExp("\{\{.*\}\}");
-        var newLineChar = '\n';
-        var linesOfSnippet = snippet.split(newLineChar);
-        var newSnippet = linesOfSnippet.length > 0 ? "" : snippet;
+        var match: RegExpMatchArray;
+        var startMatches = new Array<RegExpMatchArray>();
+        var endMatches = new Array<RegExpMatchArray>();
 
-        for (var i = 0; i < linesOfSnippet.length; i++) {
-            var currentLine = linesOfSnippet[i];
-            var match = bindingRegEx.exec(currentLine);
-
-            if (match) {
-                currentLine = "\{\% raw \%\}" + currentLine + "\{\% endraw \%\}";
-            }
-
-            newSnippet += currentLine;
-
-            if (i < linesOfSnippet.length - 1) {
-                newSnippet += newLineChar;
-            }
+        while (match = startExp.exec(snippet)) {
+            startMatches.push(match);
         }
 
-        return newSnippet;
+        while (match = endExp.exec(snippet)) {
+            endMatches.push(match);
+        }
+
+        // Validate
+        if (startMatches.length !== endMatches.length) {
+            throw new Error("Start and end match blockes don't match for snippet: " + snippet);
+        }
+
+        for (var i = startMatches.length - 1; i >= 0; i--) {
+            let start = startMatches[i];
+            let end = endMatches[i];
+            snippet = snippet.substr(0, start.index) + snippet.substr(end.index + end[0].length);
+        }
+
+        return snippet;
     }
 }
 
