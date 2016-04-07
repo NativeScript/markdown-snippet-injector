@@ -64,6 +64,7 @@ export class SnippetInjector {
         this._fileProcessors['.xml'] = this.processXMLFileCore;
         this._fileProcessors['.java'] = this.processTSFileCore;
         this._fileProcessors['.cs'] = this.processTSFileCore;
+        this._fileProcessors['.css'] = this.processCSSFileCore;
     }
 
     /**
@@ -167,7 +168,6 @@ export class SnippetInjector {
 
     private processTSFileCore(path: string, extensionFilter: string) {
         console.log("Processing source file: " + path);
-        var extname = pathModule.extname(path);
         var fileContents = fsModule.readFileSync(path, 'utf8');
         var regExpOpen = /\/\/\s*>>\s*(([a-z]+\-)+[a-z]+)\s*/g;
         var regExpOpenReplacer = /\/\/\s*>>\s*(?:([a-z]+\-)+[a-z]+)\s+/g;
@@ -181,7 +181,38 @@ export class SnippetInjector {
                 match = regExpOpen.exec(fileContents);
                 continue;
             }
-            var regExpCurrentClosing = new RegExp("//\\s*<<\\s*" + match[1]);
+            var regExpCurrentClosing = new RegExp("//\\s*<<\\s*" + idOfSnippet);
+            var closingTagMatch = regExpCurrentClosing.exec(fileContents);
+            if (!closingTagMatch){
+                throw new Error("Closing tag not found for: " + idOfSnippet);
+            }
+            var indexOfClosingTag = closingTagMatch.index;
+            var snippet = fileContents.substr(matchIndex + matchLength, indexOfClosingTag - matchIndex - matchLength);
+            snippet = snippet.replace(regExpOpenReplacer, "");
+            snippet = snippet.replace(regExpCloseReplacer, "");
+            console.log("Snippet resolved: " + snippet);
+            this._storedSnippets[extensionFilter + idOfSnippet] = snippet;
+            match = regExpOpen.exec(fileContents);
+        }
+    }
+    
+    private processCSSFileCore(path: string, extensionFilter: string) {
+        console.log("Processing source file: " + path);
+        var fileContents = fsModule.readFileSync(path, 'utf8');
+        
+        var regExpOpen = /\/\*\s*>>\s*(([a-z]+\-)+[a-z]+)\s*\*\//g;
+        var regExpOpenReplacer = /\/\*\s*>>\s*(?:([a-z]+\-)+[a-z]+)\s+\*\//g;
+        var regExpCloseReplacer = /\/\*\s*<<\s*(?:([a-z]+\-)+[a-z]+)\s+\*\//g;
+        var match = regExpOpen.exec(fileContents);
+        while (match) {
+            var matchIndex = match.index;
+            var matchLength = match[0].length;
+            var idOfSnippet = match[1];
+            if (this._storedSnippets[extensionFilter + idOfSnippet] !== undefined) {
+                match = regExpOpen.exec(fileContents);
+                continue;
+            }
+            var regExpCurrentClosing = new RegExp("/\\*\\s*<<\\s*" + idOfSnippet +"\\s+\\*/");
             var closingTagMatch = regExpCurrentClosing.exec(fileContents);
             if (!closingTagMatch){
                 throw new Error("Closing tag not found for: " + idOfSnippet);
@@ -212,7 +243,7 @@ export class SnippetInjector {
                 match = regExpOpen.exec(fileContents);
                 continue;
             }
-            var regExpCurrentClosing = new RegExp("<!--\\s*<<\\s*" + match[1] + "\\s+-->");
+            var regExpCurrentClosing = new RegExp("<!--\\s*<<\\s*" + idOfSnippet + "\\s+-->");
             var closingTagMatch = regExpCurrentClosing.exec(fileContents);
             if (!closingTagMatch){
                 throw new Error("Closing tag not found for: " + idOfSnippet);
