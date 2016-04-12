@@ -243,16 +243,57 @@ export class SnippetInjector {
             var snippet = fileContents.substr(matchIndex + matchLength, indexOfClosingTag - matchIndex - matchLength);
             snippet = snippet.replace(regExpOpenReplacer, "");
             snippet = snippet.replace(regExpCloseReplacer, "");
+            snippet = this.trimWhiteSpaces(snippet);           
+            
             if (spec.postProcess) {
                 snippet = spec.postProcess(snippet);
             }
-
+            
             snippet = this.removeHiddenBlocks(snippet, spec);
 
             console.log("Snippet resolved: " + snippet);
             this._storedSnippets[extensionFilter + idOfSnippet] = snippet;
             match = regExpOpen.exec(fileContents);
         }
+    }
+
+    private lineHasText(line: string): boolean {
+        return /\S/.test(line);
+    }
+    private trimWhiteSpaces(snippet: string): string {
+        const hasText = (str: string) => /\S/;
+        snippet = snippet.replace(/\t/g, "    "); // replace tabs with 4 spaces
+        var lines = snippet.split(/\r?\n/);
+
+        // Remove lines that has no text at start of snippet
+        while (lines.length && !this.lineHasText(lines[0])) {
+            lines.shift();
+        }
+
+        // Remove lines that has no text at end of snippet
+        while (lines.length && !this.lineHasText(lines[lines.length - 1])) {
+            lines.pop();
+        }
+
+        // Get starting spaces
+        var minStartingSpaces = Number.POSITIVE_INFINITY;
+        lines.forEach((line) => {
+            if (/\S/.test(line)) {
+                var spacesOnLeft = line.match(/^ */)[0].length;
+                minStartingSpaces = Math.min(minStartingSpaces, spacesOnLeft);
+            }
+        })
+
+        // Remove starting spaces
+        if (minStartingSpaces !== Number.POSITIVE_INFINITY && minStartingSpaces > 0) {
+            for (let i = 0; i < lines.length; i++) {
+                if (/\S/.test(lines[i])) {
+                    lines[i] = lines[i].substr(minStartingSpaces);
+                }
+            }
+        }
+
+        return lines.join(osModule.EOL);
     }
 
     private removeHiddenBlocks(snippet: string, spec: FormatSpec) {
