@@ -26,10 +26,6 @@ const jsSpec: FormatSpec = {
     commentEnd: wsAndLine
 }
 
-const htmlSpec: FormatSpec = {
-    commenStart: ws +
-}
-
 const xmlSpec: FormatSpec = {
     commentStart: ws + "<!--" + ws,
     commentEnd: ws + "-->" + wsAndLine,
