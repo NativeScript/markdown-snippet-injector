@@ -26,9 +26,8 @@ const jsSpec: FormatSpec = {
     commentEnd: wsAndLine
 }
 
-const cssSpec: FormatSpec = {
-    commentStart: ws + "\\/\\*" + ws,
-    commentEnd: ws + "\\*\\/" + wsAndLine
+const htmlSpec: FormatSpec = {
+    commenStart: ws +
 }
 
 const xmlSpec: FormatSpec = {
@@ -58,6 +57,9 @@ const xmlSpec: FormatSpec = {
         return newSnippet;
     }
 }
+
+const htmlSpec: FormatSpec = xmlSpec;
+
 export class SnippetInjector {
     private _storedSnippets;
     private _snippetTitles: string;
@@ -118,6 +120,7 @@ export class SnippetInjector {
         this._fileFormatSpecs['.cs'] = jsSpec;
         this._fileFormatSpecs['.xml'] = xmlSpec;
         this._fileFormatSpecs['.css'] = cssSpec;
+        this._fileFormatSpecs['.html'] = htmlSpec;
     }
 
     /**
@@ -243,12 +246,12 @@ export class SnippetInjector {
             var snippet = fileContents.substr(matchIndex + matchLength, indexOfClosingTag - matchIndex - matchLength);
             snippet = snippet.replace(regExpOpenReplacer, "");
             snippet = snippet.replace(regExpCloseReplacer, "");
-            snippet = this.trimWhiteSpaces(snippet);           
-            
+            snippet = this.trimWhiteSpaces(snippet);
+
             if (spec.postProcess) {
                 snippet = spec.postProcess(snippet);
             }
-            
+
             snippet = this.removeHiddenBlocks(snippet, spec);
 
             console.log("Snippet resolved: " + snippet);
