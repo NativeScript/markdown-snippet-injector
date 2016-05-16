@@ -114,7 +114,11 @@ export class SnippetInjector {
                 this._storedSourceTitles[this._storedSourceTypes[i]] = (currentTitles[i] || "")
             }
         }
-
+        
+        this._fileFormatSpecs['.cs'] = jsSpec;
+        this._fileFormatSpecs['.swift'] = jsSpec;
+        this._fileFormatSpecs['.h'] = jsSpec;
+        this._fileFormatSpecs['.m'] = jsSpec;
         this._fileFormatSpecs['.js'] = jsSpec;
         this._fileFormatSpecs['.ts'] = jsSpec;
         this._fileFormatSpecs['.java'] = jsSpec;
