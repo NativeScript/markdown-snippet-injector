@@ -15,7 +15,10 @@
     "compileOnSave": true,
     "buildOnSave": false,
     "files": [
-        "index.ts"
+        "index.ts",
+        "extract.ts",
+        "snippet-injector.ts",
+        "snippet-extractor.ts"
     ],
     "atom": {
         "rewriteTsconfig": true
