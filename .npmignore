@@ -1,4 +1,6 @@
 #JavaScript
-*.js
+*.tgz
+tags
+tsconfig.json
 
 tests/

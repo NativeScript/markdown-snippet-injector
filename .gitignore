@@ -1,4 +1,5 @@
 #JavaScript
+*.tgz
 *.js
 !tests/*.js
 *.js.map
