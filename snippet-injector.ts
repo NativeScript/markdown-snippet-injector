@@ -122,6 +122,7 @@ export class SnippetInjector {
         this._fileFormatSpecs['.java'] = jsSpec;
         this._fileFormatSpecs['.cs'] = jsSpec;
         this._fileFormatSpecs['.xml'] = xmlSpec;
+        this._fileFormatSpecs['.xaml'] = xmlSpec;
         this._fileFormatSpecs['.css'] = cssSpec;
         this._fileFormatSpecs['.html'] = htmlSpec;
     }
