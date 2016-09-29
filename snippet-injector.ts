@@ -242,12 +242,23 @@ export class SnippetInjector {
                 continue;
             }
 
-            var regExpCurrentClosing = new RegExp(spec.commentStart + expConsts.end + idOfSnippet + spec.commentEnd);
-            var closingTagMatch = regExpCurrentClosing.exec(fileContents);
-            if (!closingTagMatch) {
-                throw new Error("Closing tag not found for: " + idOfSnippet);
+            var regExpCurrentClosingEOF = new RegExp(spec.commentStart + expConsts.end + idOfSnippet + "$");
+            var closingTagMatchEOF = regExpCurrentClosingEOF.exec(fileContents);
+            var indexOfClosingTag;
+
+            if (!closingTagMatchEOF) {
+                var regExpCurrentClosing = new RegExp(spec.commentStart + expConsts.end + idOfSnippet + "([^-])" + spec.commentEnd);
+                var closingTagMatch = regExpCurrentClosing.exec(fileContents);
+
+                var cleanClosingTag = closingTagMatch[0].trim();
+                var cleanEndingOfClosingTag = cleanClosingTag.substring(cleanClosingTag.length - idOfSnippet.length);
+                if (cleanEndingOfClosingTag !== idOfSnippet) {
+                    throw new Error("Closing tag not found for: " + idOfSnippet);
+                }
+                indexOfClosingTag = closingTagMatch.index;
+            } else {
+                indexOfClosingTag = closingTagMatchEOF.index;
             }
-            var indexOfClosingTag = closingTagMatch.index;
 
             var snippet = fileContents.substr(matchIndex + matchLength, indexOfClosingTag - matchIndex - matchLength);
             snippet = snippet.replace(regExpOpenReplacer, "");
