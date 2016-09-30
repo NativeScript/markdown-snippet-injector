@@ -250,9 +250,7 @@ export class SnippetInjector {
                 var regExpCurrentClosing = new RegExp(spec.commentStart + expConsts.end + idOfSnippet + "([^-])" + spec.commentEnd);
                 var closingTagMatch = regExpCurrentClosing.exec(fileContents);
 
-                var cleanClosingTag = closingTagMatch[0].trim();
-                var cleanEndingOfClosingTag = cleanClosingTag.substring(cleanClosingTag.length - idOfSnippet.length);
-                if (cleanEndingOfClosingTag !== idOfSnippet) {
+                if (!closingTagMatch) {
                     throw new Error("Closing tag not found for: " + idOfSnippet);
                 }
                 indexOfClosingTag = closingTagMatch.index;
