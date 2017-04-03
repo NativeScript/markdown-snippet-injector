@@ -4,9 +4,9 @@ var shelljs = require("shelljs");
 
 shelljs.echo('Preparing for tests ...');
 
-shelljs.rm('-rf', 'tests/docsroot-output');
+shelljs.rm('-rf', 'test/docsroot-output');
 
-shelljs.cp("-R", "tests/docsroot", "tests/docsroot-output");
+shelljs.cp("-R", "test/docsroot", "test/docsroot-output");
 
 shelljs.echo('Preparing for tests ... DONE');
 

@@ -162,4 +162,12 @@ When injected, a snippet is formatted using the default MarkDown code-snippet fo
 ```
 mdinject --root=. --docsroot=../ --sourceext=".java|.cs" --targetext=".md|.txt" --snippettitles="Java|C#"
 ```
+
+## Run e2e tests
+1. Clone repo
+2. npm install
+3. npm test
+
+E2E tests are developed with [Mocha](https://mochajs.org).
+
 > Note that the order of the snippet titles must be the related to the order of the source extension types so that they match.
