@@ -1,7 +1,8 @@
 #JavaScript
 *.tgz
 *.js
-!tests/*.js
+!prepare-tests.js
+!test/*.js
 *.js.map
 
 #Node
@@ -11,4 +12,4 @@ node_modules/
 #OSX
 .DS_Store
 
-tests/docsroot-output/
+test/docsroot-output/
