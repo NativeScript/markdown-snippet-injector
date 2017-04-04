@@ -21,9 +21,16 @@ function hasPattern(pattern, shouldExists, callback) {
       } else {
         callback(shouldExists ? null : 'Pattern ' + pattern + ' WAS found. This is NOT expected.');
       }
-
     }
   });
+}
+
+function contain(pattern, callback) {
+  hasPattern(pattern, true, callback);
+}
+
+function notContain(pattern, callback) {
+  hasPattern(pattern, false, callback);
 }
 
 describe('markdown-snippet-injector', function () {
@@ -33,25 +40,60 @@ describe('markdown-snippet-injector', function () {
     done();
   });
 
-  //TODO: Add tests for hidden fields
+  describe('XML',
+    function () {
+      it('should process XML snippets', function (done) {
+        shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".xml"');
+        notContain("<snippet id='xml-snippet'/>", function () {
+          contain("<snippet id='xml-snippet'>", function () {
+            contain("</snippet>", done);
+          });
+        });
+      });
+    });
 
-  it('should process XML snippets', function (done) {
-    shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".xml"');
-    hasPattern("<snippet id='xml-snippet'/>", false, done);
-  });
+  describe('TypeScript',
+    function () {
+      it('should process TypeScript snippets', function (done) {
+        shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".ts"');
+        notContain("<snippet id='ts-snippet'/>", function () {
+          contain("<snippet id='ts-snippet'>", function () {
+            contain("</snippet>", done);
+          });
+        });
+      });
+    });
 
-  it('should process TypeScript snippets', function (done) {
-    shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".ts"');
-    hasPattern("<snippet id='ts-snippet'/>", false, done);
-  });
+  describe('CSS',
+    function () {
+      it('should process CSS snippets', function (done) {
+        shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".css"');
+        notContain("<snippet id='css-snippet'/>", function () {
+          contain("<snippet id='css-snippet'>", function () {
+            contain("</snippet>", done);
+          });
+        });
+      });
 
-  it('should process CSS snippets', function (done) {
-    shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".css"');
-    hasPattern("<snippet id='css-snippet'/>", false, done);
-  });
+      it('should keep hidden the marked area in CSS', function (done) {
+        shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".css"');
+        notContain("visibility: hidden;", done);
+      });
 
-  it('should NOT process snippetIds that are not defined in source', function (done) {
-    shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".css"');
-    hasPattern("<snippet id='cssSnippet'/>", true, done);
-  });
+      it('should NOT process snippetIds that are not defined in source', function (done) {
+        shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".css"');
+        contain("<snippet id='cssSnippet'/>", function () {
+          notContain("<snippet id='cssSnippet'>", done);
+        });
+      });
+
+      it('should update the already processed snippet tags', function (done) {
+        shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".css"');
+        contain("<snippet id='css-already-processed'>", function () {
+          contain("</snippet>", function(){
+            contain("color: red;", done);
+          });
+        });
+      });
+    });
 });

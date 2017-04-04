@@ -8,8 +8,19 @@
 /* >> css-snippet-with-hidden-section */
 .btn {
     color: green;
+    background-color: blue;
     /* >> (hide) */
     visibility: hidden;
     /* << (hide) */
 }
 /* << css-snippet-with-hidden-section */
+
+/* >> css-already-processed */
+.text {
+    color: red;
+    font-size: 10px;
+    /* >> (hide) */
+    visibility: hidden;
+    /* << (hide) */
+}
+/* << css-already-processed */
