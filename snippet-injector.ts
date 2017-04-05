@@ -67,12 +67,21 @@ export class SnippetInjector {
     private _storedSourceTypes: Array<string>;
     private _storedTargetTypes: Array<string>;
     private _storedSourceTitles: any;
+    private _toWrap: boolean;
 
     private _fileFormatSpecs = {};
 
 
     constructor() {
         this._storedSnippets = {};
+    }
+
+    get toWrap(): boolean {
+        return this._toWrap;
+    }
+
+    set toWrap(value: boolean){
+        this._toWrap = value;
     }
 
     get targetFileExtensionFilter(): string {
@@ -213,8 +222,29 @@ export class SnippetInjector {
             }
 
             if (finalSnippet.length > 0) {
-                var tmpMatchedString = this.wrapSnippetWithComments(matchedString, placeholderId);
-                fileContents = fileContents.replace(matchedString, tmpMatchedString);
+                /* 
+                    Check whether it should be wrapped or replaced.
+                    If the tag is closed it will be replaced by the snippet.
+
+                    From:
+                    <snippet id="snippetId"/>
+                    To:
+                    {your_snippet}
+
+                    If there is open and closed tag the snippet will be wrapped around snippet tag.
+
+                    From:
+                    <snippet id="snippetId"></snippet>
+                    To:
+                    <snippet id="snippetId">
+                    {your_snippet}
+                    </snippet>
+                    
+                */
+                if (this.toWrap) {
+                    var tmpMatchedString = this.wrapSnippetWithComments(matchedString, placeholderId);
+                    fileContents = fileContents.replace(matchedString, tmpMatchedString);
+                }
                 fileContents = fileContents.replace(matchedString, finalSnippet);
                 console.log("Token replaced: " + matchedString);
             }

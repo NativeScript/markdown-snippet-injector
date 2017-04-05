@@ -76,9 +76,11 @@ Use the `<snippet id='<your-snippet-id>'/>` notation to define the corresponding
         <snippet id='sum-snippet'/>
 ```
 
-After the first generation your snippets will be wrapped around the snippet notation you have been provided. This way when you update your snipet source - the `markdown-snippet-injector` will reflect the changes in your markdown as well.
+If you set `-w` flag your snippets will be wrapped around the snippet notation you have been provided. This way when you update your snipet source - the `markdown-snippet-injector` will reflect the changes in your markdown as well.
 
 Example:
+
+`mdinject -w --root=<path-to-source-code> --docsroot=<path-to-docs>`
 
 main.css
 ```

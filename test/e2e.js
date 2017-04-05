@@ -45,8 +45,17 @@ describe('markdown-snippet-injector', function () {
       it('should process XML snippets', function (done) {
         shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".xml"');
         notContain("<snippet id='xml-snippet'/>", function () {
+          notContain("<snippet id='xml-snippet'>", function () {
+            contain('<Label fontSize="20" text="{{ itemName }}"/>', done);
+          });
+        });
+      });
+
+      it('should process XML snippets and wrap it', function (done) {
+        shelljs.exec('node index.js -w --root=./test/root --docsroot=./test/docsroot-output --sourceext=".xml"');
+        notContain("<snippet id='xml-snippet'/>", function () {
           contain("<snippet id='xml-snippet'>", function () {
-            contain("</snippet>", done);
+            contain('<Label fontSize="20" text="{{ itemName }}"/>', done);
           });
         });
       });
@@ -56,6 +65,17 @@ describe('markdown-snippet-injector', function () {
     function () {
       it('should process TypeScript snippets', function (done) {
         shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".ts"');
+        notContain("<snippet id='ts-snippet'/>", function () {
+          notContain("<snippet id='ts-snippet'>", function () {
+            notContain("</snippet>", function () {
+              contain('return a + b;', done);
+            });
+          });
+        });
+      });
+
+      it('should process TypeScript snippets and wrap', function (done) {
+        shelljs.exec('node index.js -w --root=./test/root --docsroot=./test/docsroot-output --sourceext=".ts"');
         notContain("<snippet id='ts-snippet'/>", function () {
           contain("<snippet id='ts-snippet'>", function () {
             contain("</snippet>", done);
@@ -69,8 +89,21 @@ describe('markdown-snippet-injector', function () {
       it('should process CSS snippets', function (done) {
         shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".css"');
         notContain("<snippet id='css-snippet'/>", function () {
+          notContain("<snippet id='css-snippet'>", function () {
+            notContain("</snippet>", function () {
+              contain('text-align: center;', done);
+            });
+          });
+        });
+      });
+
+      it('should process CSS snippets and wrap', function (done) {
+        shelljs.exec('node index.js -w --root=./test/root --docsroot=./test/docsroot-output --sourceext=".css"');
+        notContain("<snippet id='css-snippet'/>", function () {
           contain("<snippet id='css-snippet'>", function () {
-            contain("</snippet>", done);
+            contain("</snippet>", function () {
+              contain('text-align: center;', done);
+            });
           });
         });
       });
@@ -90,7 +123,7 @@ describe('markdown-snippet-injector', function () {
       it('should update the already processed snippet tags', function (done) {
         shelljs.exec('node index.js --root=./test/root --docsroot=./test/docsroot-output --sourceext=".css"');
         contain("<snippet id='css-already-processed'>", function () {
-          contain("</snippet>", function(){
+          contain("</snippet>", function () {
             contain("color: red;", done);
           });
         });
