@@ -32,7 +32,7 @@ const cssSpec: FormatSpec = {
 const xmlSpec: FormatSpec = {
     commentStart: ws + "<!--" + ws,
     commentEnd: ws + "-->" + wsAndLine,
-    postProcess: function(snippet: string) {
+    postProcess: function (snippet: string) {
         var bindingRegEx = new RegExp("\{\{.*\}\}");
         var newLineChar = '\n';
         var linesOfSnippet = snippet.split(newLineChar);
@@ -67,12 +67,21 @@ export class SnippetInjector {
     private _storedSourceTypes: Array<string>;
     private _storedTargetTypes: Array<string>;
     private _storedSourceTitles: any;
+    private _toWrap: boolean;
 
     private _fileFormatSpecs = {};
 
 
     constructor() {
         this._storedSnippets = {};
+    }
+
+    get toWrap(): boolean {
+        return this._toWrap;
+    }
+
+    set toWrap(value: boolean){
+        this._toWrap = value;
     }
 
     get targetFileExtensionFilter(): string {
@@ -112,7 +121,7 @@ export class SnippetInjector {
                 this._storedSourceTitles[this._storedSourceTypes[i]] = (currentTitles[i] || "")
             }
         }
-        
+
         this._fileFormatSpecs['.cs'] = jsSpec;
         this._fileFormatSpecs['.swift'] = jsSpec;
         this._fileFormatSpecs['.h'] = jsSpec;
@@ -172,9 +181,25 @@ export class SnippetInjector {
         }
     }
 
+    private replaceWrappedSnippetsWithCorespondingTags(fileContent): string {
+        var content = "";
+        content = fileContent.replace(/\<snippet id=['"]([a-zA-Z0-9\-]+)[\S\s]>[\S\s]*?<\/snippet>/g, "<snippet id='$1'/>");
+        return content;
+    }
+
+    private wrapSnippetWithComments(snippetTag, snippetId): string {
+        var wrappedSnippetTag = "";
+        wrappedSnippetTag += "\n<snippet id='" + snippetId + "'>\n"
+        wrappedSnippetTag += snippetTag
+        wrappedSnippetTag += "\n</snippet>\n"
+
+        return wrappedSnippetTag;
+    }
+
     private processDocsFile(path: string, extensionFilter: string) {
         console.log("Processing docs file: " + path);
         var fileContents = fsModule.readFileSync(path, 'utf8');
+        fileContents = this.replaceWrappedSnippetsWithCorespondingTags(fileContents);
         var regExpOpen = /\<\s*snippet\s+id=\'((?:[a-z]+\-)*[a-z]+)\'\s*\/\s*\>/g;
         var match = regExpOpen.exec(fileContents);
         var hadMatches: boolean = false;
@@ -197,6 +222,29 @@ export class SnippetInjector {
             }
 
             if (finalSnippet.length > 0) {
+                /* 
+                    Check whether it should be wrapped or replaced.
+                    If the tag is closed it will be replaced by the snippet.
+
+                    From:
+                    <snippet id="snippetId"/>
+                    To:
+                    {your_snippet}
+
+                    If there is open and closed tag the snippet will be wrapped around snippet tag.
+
+                    From:
+                    <snippet id="snippetId"></snippet>
+                    To:
+                    <snippet id="snippetId">
+                    {your_snippet}
+                    </snippet>
+                    
+                */
+                if (this.toWrap) {
+                    var tmpMatchedString = this.wrapSnippetWithComments(matchedString, placeholderId);
+                    fileContents = fileContents.replace(matchedString, tmpMatchedString);
+                }
                 fileContents = fileContents.replace(matchedString, finalSnippet);
                 console.log("Token replaced: " + matchedString);
             }

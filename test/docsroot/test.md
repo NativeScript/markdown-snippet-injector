@@ -10,10 +10,19 @@ This one has some hidden parts:
 This one has some hidden parts:
 <snippet id='ts-snippet-with-hidden-section'/>
 
-
 # CSS snippet:
 <snippet id='css-snippet'/>
 <snippet id='cssSnippet'/>
 
 This one has some hidden parts:
 <snippet id='css-snippet-with-hidden-section'/>
+
+This one is already processed snippet
+<snippet id='css-already-processed'>
+```
+.btn {
+    color: green;
+    background-color: blue;
+}
+```
+</snippet>

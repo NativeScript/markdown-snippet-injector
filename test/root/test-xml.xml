@@ -1,19 +1,20 @@
-<navigation:ExamplePage xmlns:navigation="navigation/example-page" loaded="onPageLoaded" xmlns:lv="nativescript-telerik-ui/listview" xmlns="http://www.nativescript.org/tns.xsd">
+<navigation:ExamplePage 
+    xmlns:navigation="navigation/example-page" loaded="onPageLoaded" 
+    xmlns:lv="nativescript-telerik-ui/listview" 
+    xmlns="http://www.nativescript.org/tns.xsd">
     <StackLayout>
-    <!-- >> xml-snippet -->
+        <!-- >> xml-snippet -->
         <StackLayout>
             <Label fontSize="20" text="{{ itemName }}"/>
         </StackLayout>
-    <!-- << xml-snippet -->
-
-    <!-- >> xml-snippet-with-hidden-section -->
+        <!-- << xml-snippet -->
+        <!-- >> xml-snippet-with-hidden-section -->
         <StackLayout>
             <!-- >> (hide) -->
             <Label text="you should not see this"/>
             <!-- << (hide) -->
             <Label fontSize="20" text="{{ itemName }}"/>
         </StackLayout>
-    <!-- << xml-snippet-with-hidden-section -->
-    
+        <!-- << xml-snippet-with-hidden-section -->
     </StackLayout>
 </navigation:ExamplePage>

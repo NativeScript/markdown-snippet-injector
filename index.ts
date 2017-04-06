@@ -15,6 +15,8 @@ if (docsRoot === undefined) {
 }
 
 var snippetInjector = new SnippetInjector();
+
+snippetInjector.toWrap = yargsModule.argv.w;
 snippetInjector.sourceFileExtensionFilter = yargsModule.argv.sourceext || ".ts";
 snippetInjector.targetFileExtensionFilter = yargsModule.argv.targetext || ".md";
 

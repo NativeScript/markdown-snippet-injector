@@ -76,6 +76,42 @@ Use the `<snippet id='<your-snippet-id>'/>` notation to define the corresponding
         <snippet id='sum-snippet'/>
 ```
 
+If you set `-w` flag your snippets will be wrapped around the snippet notation you have been provided. This way when you update your snipet source - the `markdown-snippet-injector` will reflect the changes in your markdown as well.
+
+Example:
+
+`mdinject -w --root=<path-to-source-code> --docsroot=<path-to-docs>`
+
+main.css
+```
+/* >> css-snippet */
+.btn {
+    color: green;
+    text-align: center;
+}
+/* << css-snippet */
+```
+
+README.MD
+```
+This is a CSS snippet
+<snippet id='css-snippet'/>
+```
+
+After first build the README.MD will looks like:
+```
+This is a CSS snippet
+<snippet id='css-snippet'>
+```
+.btn {
+    color: green;
+    text-align: center;
+}
+```
+</snippet>
+```
+Then when you update `main.css`, your README.MD will be updated as well.
+
 # Advanced features
 ## Nested snippets
 Nested snippets are also supported. This is helpful in scenarios where you want to explain parts of a larger snippet in steps:
@@ -162,6 +198,7 @@ When injected, a snippet is formatted using the default MarkDown code-snippet fo
 ```
 mdinject --root=. --docsroot=../ --sourceext=".java|.cs" --targetext=".md|.txt" --snippettitles="Java|C#"
 ```
+> Note that the order of the snippet titles must be the related to the order of the source extension types so that they match.
 
 ## Run e2e tests
 1. Clone repo
@@ -169,5 +206,3 @@ mdinject --root=. --docsroot=../ --sourceext=".java|.cs" --targetext=".md|.txt" 
 3. npm test
 
 E2E tests are developed with [Mocha](https://mochajs.org).
-
-> Note that the order of the snippet titles must be the related to the order of the source extension types so that they match.
