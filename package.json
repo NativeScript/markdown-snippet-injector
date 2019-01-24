@@ -1,6 +1,6 @@
 {
   "name": "markdown-snippet-injector",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "The MarkDown snippet injector generates MD code snippets by extracting them from the source code of your projects.",
   "main": "index.js",
   "bin": {
@@ -23,7 +23,7 @@
   "author": "Deyan Ginev",
   "license": "MIT",
   "dependencies": {
-    "typescript": "^1.7.5",
+    "typescript": "^3.1.0",
     "yargs": "^4.1.0"
   },
   "devDependencies": {
