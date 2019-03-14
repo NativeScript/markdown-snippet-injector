@@ -1,13 +1,4 @@
-#JavaScript
-*.tgz
-*.js
-!prepare-tests.js
-!test/*.js
-*.js.map
 
-#Node
-node_modules/
-*.d.ts
 
 #OSX
 .DS_Store

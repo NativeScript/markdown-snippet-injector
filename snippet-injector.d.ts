@@ -1,0 +1,30 @@
+export declare class SnippetInjector {
+    private _storedSnippets;
+    private _snippetTitles;
+    private _sourceFileExtensionFilter;
+    private _targetFileExtensionFilter;
+    private _storedSourceTypes;
+    private _storedTargetTypes;
+    private _storedSourceTitles;
+    private _toWrap;
+    private _fileFormatSpecs;
+    constructor();
+    toWrap: boolean;
+    targetFileExtensionFilter: string;
+    sourceFileExtensionFilter: string;
+    snippetTitles: string;
+    private init;
+    process(root: string): void;
+    injectSnippets(docsRoot: string): void;
+    private processDirectory;
+    private replaceWrappedSnippetsWithCorespondingTags;
+    private wrapSnippetWithComments;
+    private processDocsFile;
+    private processDocsDirectory;
+    private processFile;
+    protected hasSnippet(fileExtension: string, id: string): boolean;
+    protected addSnippet(fileExtension: string, id: string, snippet: string): void;
+    private lineHasText;
+    private trimWhiteSpaces;
+    private removeHiddenBlocks;
+}
