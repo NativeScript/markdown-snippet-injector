@@ -11,7 +11,7 @@
     "definition": "index.d.ts"
   },
   "scripts": {
-    "prepublish": "tsc -p .",
+    "prepare": "tsc -p .",
     "test": "tsc && mocha"
   },
   "keywords": [
