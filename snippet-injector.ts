@@ -189,9 +189,9 @@ export class SnippetInjector {
 
     private wrapSnippetWithComments(snippetTag, snippetId): string {
         var wrappedSnippetTag = "";
-        wrappedSnippetTag += "\n<snippet id='" + snippetId + "'>\n"
+        wrappedSnippetTag += "<snippet id='" + snippetId + "'>\n"
         wrappedSnippetTag += snippetTag
-        wrappedSnippetTag += "\n</snippet>\n"
+        wrappedSnippetTag += "\n</snippet>"
 
         return wrappedSnippetTag;
     }
